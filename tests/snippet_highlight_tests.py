@@ -24,14 +24,14 @@ class SnippetHighlightTest(unittest.TestCase):
                      snippet_highlight.highlight_doc(self.basic_document,
                                                      self.basic_query))
 
-    def test_arguments_are_empty(self):
-        assert_true(snippet_highlight.arguments_are_empty('', ''))
-        assert_true(snippet_highlight.arguments_are_empty('',
-                                                          self.basic_query))
-        assert_true(snippet_highlight.arguments_are_empty(self.basic_document,
-                                                          ''))
-        assert_false(snippet_highlight.arguments_are_empty(self.basic_document,
-                                                           self.basic_query))
+    def test_is_document_or_query_blank(self):
+        assert_true(snippet_highlight.is_document_or_query_blank('', ''))
+        assert_true(snippet_highlight.is_document_or_query_blank('',
+                    self.basic_query))
+        assert_true(snippet_highlight.is_document_or_query_blank(
+            self.basic_document, ''))
+        assert_false(snippet_highlight.is_document_or_query_blank(
+            self.basic_document, self.basic_query))
 
 
 if __name__ == '__main__':
