@@ -1,5 +1,5 @@
-HIGHLIGHT = "[[HIGHLIGHT]]"
-END_HIGHLIGHT = "[[ENDHIGHLIGHT]]"
+HIGHLIGHT = '[[HIGHLIGHT]]'
+END_HIGHLIGHT = '[[ENDHIGHLIGHT]]'
 
 
 def highlight_doc(document, query):
