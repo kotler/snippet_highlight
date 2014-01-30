@@ -13,10 +13,13 @@ class SnippetHighlightTest(unittest.TestCase):
         self.basic_result = "foo " + self.highlighted_bar
         self.multi_word_result = (self.highlighted_foo + " " +
                                   self.highlighted_bar)
-        self.long_document = open("tests/test_document.txt").readlines()
+        self.long_document = open("tests/test_document.txt").read()
         self.long_query = "George Lucas"
         self.highlighted_long_query = (
             self.highlighted_in_order_query(self.long_query))
+
+    def tearDown(self):
+        self.long_document.close()
 
     def highlighted_in_order_query(self, query):
         query_words = query.split(' ')
@@ -28,9 +31,6 @@ class SnippetHighlightTest(unittest.TestCase):
     def highlight_word(self, word):
         return (snippet_highlight.HIGHLIGHT + word +
                 snippet_highlight.END_HIGHLIGHT)
-
-    def tearDown(self):
-        pass
 
     def test_highlight_doc_blank_doc_and_query(self):
         assert_equal('', snippet_highlight.highlight_doc('', ''))
