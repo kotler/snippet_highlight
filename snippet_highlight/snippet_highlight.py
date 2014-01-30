@@ -22,4 +22,5 @@ def is_document_or_query_blank(document, query):
 
 def highlight(text, term):
     highlighted_term = HIGHLIGHT + term + END_HIGHLIGHT
+    # FIX_ME string.replace() replaces substrings
     return text.replace(term, highlighted_term)
