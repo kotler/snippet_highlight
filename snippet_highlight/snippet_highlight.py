@@ -8,9 +8,23 @@ def highlight_doc(document, query):
 
     query_terms = query.split(' ')
 
-    for term in query_terms:
-        document = highlight(document, term)
-    return document
+    document_terms = document.split(' ')
+
+    result_terms = []
+    to_highlight = []
+    for term in document_terms:
+        if term in query_terms:
+            to_highlight.append(term)
+        else:
+            if len(to_highlight) > 0:
+                result_terms.append(highlight(' '.join(to_highlight)))
+                to_highlight = []
+            result_terms.append(term)
+
+    if len(to_highlight) > 0:
+        result_terms.append(highlight(' '.join(to_highlight)))
+
+    return ' '.join(result_terms)
 
 
 def is_document_or_query_blank(document, query):
@@ -20,7 +34,5 @@ def is_document_or_query_blank(document, query):
         return False
 
 
-def highlight(text, term):
-    highlighted_term = HIGHLIGHT + term + END_HIGHLIGHT
-    # FIX_ME string.replace() replaces substrings
-    return text.replace(term, highlighted_term)
+def highlight(term):
+    return HIGHLIGHT + term + END_HIGHLIGHT

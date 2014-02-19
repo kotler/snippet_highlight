@@ -8,18 +8,18 @@ class SnippetHighlightTest(unittest.TestCase):
     def setUp(self):
         self.basic_document = "foo bar"
         self.basic_query = "bar"
-        self.highlighted_foo = self.highlight_word("foo")
-        self.highlighted_bar = self.highlight_word("bar")
-        self.basic_result = "foo " + self.highlighted_bar
-        self.multi_word_result = (self.highlighted_foo + " " +
-                                  self.highlighted_bar)
-        self.long_document = open("tests/test_document.txt").read()
+        self.highlighted_foo = self.highlight("foo")
+        self.highlighted_bar = self.highlight("bar")
+        self.basic_result = "foo " + self.highlight("bar")
+        self.multi_word_result = self.highlight(self.basic_document)
+        self.test_file = open("tests/test_document.txt")
+        self.long_document = self.test_file.read()
         self.long_query = "George Lucas"
         self.highlighted_long_query = (
-            self.highlighted_in_order_query(self.long_query))
+            self.highlight(self.long_query))
 
     def tearDown(self):
-        self.long_document.close()
+        self.test_file.close()
 
     def highlighted_in_order_query(self, query):
         query_words = query.split(' ')
@@ -28,8 +28,8 @@ class SnippetHighlightTest(unittest.TestCase):
             result += self.highlight_word(query)
         return result
 
-    def highlight_word(self, word):
-        return (snippet_highlight.HIGHLIGHT + word +
+    def highlight(self, text):
+        return (snippet_highlight.HIGHLIGHT + text +
                 snippet_highlight.END_HIGHLIGHT)
 
     def test_highlight_doc_blank_doc_and_query(self):
@@ -74,6 +74,12 @@ class SnippetHighlightTest(unittest.TestCase):
                       snippet_highlight.highlight_doc(self.long_document,
                                                       self.long_query).find(
                           self.highlighted_long_query))
+
+    def test_highlight_doc_with_trailing_puctuation(self):
+        doc = self.basic_document + ','
+        result = self.basic_result + ','
+        assert_equal(snippet_highlight.highlight_doc(doc, self.basic_query),
+                     result)
 
 if __name__ == '__main__':
     unittest.main()
