@@ -59,16 +59,19 @@ class Snippet(object):
             if self._prep_term_for_matching(term) in query_terms:
                 to_highlight.append(term)
             else:
-                if len(to_highlight) > 0:
-                    result_terms.append(self._highlight_term(' '.join(
-                        to_highlight)))
-                    to_highlight = []
+                result_terms, to_highlight = self._append_and_highlight_terms(
+                    result_terms, to_highlight)
                 result_terms.append(term)
 
+        result_terms, to_highlight = self._append_and_highlight_terms(
+            result_terms, to_highlight)
+        return ' '.join(result_terms)
+
+    def _append_and_highlight_terms(self, result_terms, to_highlight):
         if len(to_highlight) > 0:
             result_terms.append(self._highlight_term(' '.join(to_highlight)))
-
-        return ' '.join(result_terms)
+            to_highlight = []
+        return result_terms, to_highlight
 
     def _highlight_term(self, term):
         return (self.HIGHLIGHT + without_trailing_punctuation(term) +
