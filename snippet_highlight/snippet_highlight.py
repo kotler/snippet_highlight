@@ -2,8 +2,9 @@ import string
 
 
 def highlight_doc(document, query):
-    snippet = Snippet(document, query)
-    return snippet.highlighted()
+    snippet = Snippet(document)
+    snippet.set_snippet_relevant_to(query)
+    return snippet.highlight(query)
 
 
 class Snippet(object):
@@ -11,12 +12,27 @@ class Snippet(object):
     HIGHLIGHT = '[[HIGHLIGHT]]'
     END_HIGHLIGHT = '[[ENDHIGHLIGHT]]'
 
-    def __init__(self, full_text, query):
+    def __init__(self, full_text):
         self.full_text = full_text
-        self.query = query
-        self.snippet = self._find_most_relevant_snippet()
+        self.snippet = self._find_most_relevant_snippet('')
 
-    def _find_most_relevant_snippet(self):
+    def set_snippet_relevant_to(self, query_text):
+        self.snippet = self._find_most_relevant_snippet(query_text)
+        return self.snippet
+
+    def highlight(self, text):
+        if not text:
+            return self.snippet
+
+        text_terms = []
+        for term in text.split(' '):
+            text_terms.append(self._prep_term_for_matching(term))
+
+        snippet_terms = self.snippet.split(' ')
+        self.snippet = self._highlight(snippet_terms, text_terms)
+        return self.snippet
+
+    def _find_most_relevant_snippet(self, query_text):
         """
         1.  Split document in sentences
         2.  Rank each sentence (count of query terms, count of adjacent terms,
@@ -25,49 +41,40 @@ class Snippet(object):
             sentence is longer than window_size make sure snippet contains
             a query term.
         """
-        if self._is_full_text_or_query_blank():
+        if self._is_full_text_or_query_blank(query_text):
             return self.full_text[:self.LENGTH]
         else:
             return self.full_text[:self.LENGTH]
 
-    def _is_full_text_or_query_blank(self):
-        if self.full_text is '' or self.query is '':
+    def _is_full_text_or_query_blank(self, query_text):
+        if self.full_text is '' or query_text is '':
             return True
         else:
             return False
 
-    def highlighted(self):
-        if not self.query:
-            return self.snippet
-
-        query_terms = []
-        for term in self.query.split(' '):
-            query_terms.append(self._prep_term(term))
-
-        snippet_terms = self.snippet.split(' ')
-
+    def _highlight(self, text_terms, query_terms):
         result_terms = []
         to_highlight = []
-        for term in snippet_terms:
-            if self._prep_term(term) in query_terms:
+        for term in text_terms:
+            if self._prep_term_for_matching(term) in query_terms:
                 to_highlight.append(term)
             else:
                 if len(to_highlight) > 0:
-                    result_terms.append(self._highlight(' '.join(
+                    result_terms.append(self._highlight_term(' '.join(
                         to_highlight)))
                     to_highlight = []
                 result_terms.append(term)
 
         if len(to_highlight) > 0:
-            result_terms.append(self._highlight(' '.join(to_highlight)))
+            result_terms.append(self._highlight_term(' '.join(to_highlight)))
 
         return ' '.join(result_terms)
 
-    def _highlight(self, term):
+    def _highlight_term(self, term):
         return (self.HIGHLIGHT + without_trailing_punctuation(term) +
                 self.END_HIGHLIGHT + trailing_punctuation(term))
 
-    def _prep_term(self, term):
+    def _prep_term_for_matching(self, term):
         return without_trailing_punctuation(term).lower()
 
 
