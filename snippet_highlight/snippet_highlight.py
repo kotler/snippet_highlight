@@ -1,4 +1,5 @@
 import string
+import re
 
 
 def highlight_doc(document, query):
@@ -33,24 +34,45 @@ class Snippet(object):
         return self.snippet
 
     def _find_most_relevant_snippet(self, query_text):
-        """
-        1.  Split document in sentences
-        2.  Rank each sentence (count of query terms, count of adjacent terms,
-            exact query matches)
-        3.  Start snippet preferably at the beginning of a sentence. If a
-            sentence is longer than window_size make sure snippet contains
-            a query term.
-        """
         if self._is_full_text_or_query_blank(query_text):
             return self.full_text[:self.LENGTH]
-        else:
+
+        query_terms = [re.escape(term) for term in query_text.lower().split()]
+        if not query_terms:
             return self.full_text[:self.LENGTH]
 
+        # Find all occurrences of all query terms
+        pattern = re.compile('|'.join(query_terms), re.IGNORECASE)
+        matches = list(pattern.finditer(self.full_text))
+
+        if not matches:
+            return self.full_text[:self.LENGTH]
+
+        # Score each match by the density of other matches nearby
+        best_match = None
+        max_score = -1
+
+        for i, match in enumerate(matches):
+            score = 0
+            center = match.start()
+            for other_match in matches[i:]:
+                if other_match.start() >= center + self.LENGTH:
+                    break
+                score += 1
+            
+            if score > max_score:
+                max_score = score
+                best_match = match
+
+        # Create the snippet around the best match
+        sentence_center = best_match.start() + len(best_match.group(0)) // 2
+        start = max(0, sentence_center - self.LENGTH // 2)
+        end = min(len(self.full_text), start + self.LENGTH)
+
+        return self.full_text[start:end]
+
     def _is_full_text_or_query_blank(self, query_text):
-        if self.full_text is '' or query_text is '':
-            return True
-        else:
-            return False
+        return not self.full_text or not query_text
 
     def _highlight(self, text_terms, query_terms):
         result_terms = []
@@ -81,37 +103,12 @@ class Snippet(object):
         return without_trailing_punctuation(term).lower()
 
 
-class Ranked_Sentence(object):
-    QUERY_TERMS_WEIGHT = 0.25
-    ADJACENT_QUERY_TERMS_WEIGHT = 0.25
-    EXACT_MATCH_WEIGHT = 0.5
 
-    def __init__(self, text, query):
-        self.text = text
-        self.rank = self.rank(query)
-
-    def rank(self):
-        rank = (self.count_of_query_terms() * self.QUERY_TERMS_WEIGHT +
-                self.count_of_adjacent_query_terms *
-                self.ADJACENT_QUERY_TERMS_WEIGHT +
-                self.count_of_exact_matches() * self.EXACT_MATCH_WEIGHT)
-        return rank
-
-    def count_of_query_terms(self):
-        return 0
-
-    def count_of_adjacent_query_terms(self):
-        return 0
-
-    def count_of_exact_matches(self):
-        return 0
 
 
 def without_trailing_punctuation(text):
-    if len(text) < 1:
-        return text
-    if text[len(text) - 1] in string.punctuation:
-        text = without_trailing_punctuation(text[:-1])
+    while len(text) > 0 and text[-1] in string.punctuation:
+        text = text[:-1]
     return text
 
 

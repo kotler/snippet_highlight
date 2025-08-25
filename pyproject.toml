@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snippet_highlight"
+version = "0.1.0"
+authors = [
+  { name="Everett Kotler", email="kotler@gmail.com" },
+]
+description = "A project to highlight snippets in a document"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "URL to get it at."
+"Bug Tracker" = "Where to download it at."
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
